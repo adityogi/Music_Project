@@ -4,17 +4,21 @@ import { persist } from 'zustand/middleware';
 export const usePlayerStore = create(
   persist(
     (set, get) => ({
-      // Navigation State
+      // --- NAVIGATION STATE ---
       currentView: 'home', 
       selectedAlbum: null,
       setView: (view, album = null) => set({ currentView: view, selectedAlbum: album }),
 
-      // Library State
+      // --- LIBRARY STATE ---
       library: [],
       albums: [],
       setLibrary: (songs, albums) => set({ library: songs, albums }),
 
-      // Playback & Queue State
+      // --- SEARCH STATE ---
+      searchQuery: '',
+      setSearchQuery: (query) => set({ searchQuery: query }),
+
+      // --- PLAYBACK & QUEUE STATE ---
       currentSong: null,
       isPlaying: false,
       queue: [],
@@ -22,7 +26,35 @@ export const usePlayerStore = create(
       volume: 1,
       isQueueOpen: false,
 
-      // Actions
+      // --- LYRICS STATE ---
+      isLyricsOpen: false,
+      currentLyrics: [],
+      toggleLyrics: () => set((state) => ({ isLyricsOpen: !state.isLyricsOpen })),
+      setLyrics: (lyrics) => set({ currentLyrics: lyrics }),
+
+      // --- EQUALIZER STATE ---
+      isEqOpen: false,
+      toggleEq: () => set((state) => ({ isEqOpen: !state.isEqOpen })),
+      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+      setEqBand: (index, value) => set((state) => {
+        const newBands = [...state.eqBands];
+        newBands[index] = value;
+        return { eqBands: newBands };
+      }),
+      resetEq: () => set({ eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }),
+
+      // --- PLAYLIST STATE ---
+      playlists: [],
+      createPlaylist: (name) => set((state) => ({
+        playlists: [...state.playlists, { id: Date.now().toString(), name: name, songs: [] }]
+      })),
+      addToPlaylist: (playlistId, song) => set((state) => ({
+        playlists: state.playlists.map(p => 
+          p.id === playlistId ? { ...p, songs: [...p.songs, song] } : p
+        )
+      })),
+
+      // --- ACTIONS ---
       playSong: (song, newQueue = null) => {
         const queue = newQueue || get().queue;
         const queueIndex = queue.findIndex(s => s.id === song.id);
@@ -34,28 +66,10 @@ export const usePlayerStore = create(
         });
       },
       
-      // Lyrics State
-      isLyricsOpen: false,
-      currentLyrics: [],
-      toggleLyrics: () => set((state) => ({ isLyricsOpen: !state.isLyricsOpen })),
-      setLyrics: (lyrics) => set({ currentLyrics: lyrics }),
-
       togglePlay: (forceState) => set((state) => ({ 
         isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
       })),
       
-      // Equalizer State
-      isEqOpen: false,
-      toggleEq: () => set((state) => ({ isEqOpen: !state.isEqOpen })),
-      // 10 bands from 32Hz (Bass) to 16kHz (Treble), starting at 0dB (flat)
-      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-      setEqBand: (index, value) => set((state) => {
-        const newBands = [...state.eqBands];
-        newBands[index] = value;
-        return { eqBands: newBands };
-      }),
-      resetEq: () => set({ eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }),
-
       playNext: () => {
         const { queue, queueIndex } = get();
         if (queueIndex < queue.length - 1) {
@@ -71,32 +85,22 @@ export const usePlayerStore = create(
       },
       
       setVolume: (vol) => set({ volume: vol }),
-
-      // Queue Actions
       toggleQueue: () => set((state) => ({ isQueueOpen: !state.isQueueOpen })),
       
       removeFromQueue: (indexToRemove) => set((state) => {
         const newQueue = [...state.queue];
         newQueue.splice(indexToRemove, 1);
-        
         let newIndex = state.queueIndex;
-        if (indexToRemove < state.queueIndex) {
-          newIndex -= 1;
-        }
-        
+        if (indexToRemove < state.queueIndex) newIndex -= 1;
         return { queue: newQueue, queueIndex: newIndex };
       }),
-
+      
       reorderQueue: (startIndex, endIndex) => set((state) => {
-        if (startIndex === endIndex) return state; // Nothing changed
-        
+        if (startIndex === endIndex) return state;
         const newQueue = [...state.queue];
-        // 1. Remove the item from its old position
         const [removed] = newQueue.splice(startIndex, 1);
-        // 2. Insert it at the new position
         newQueue.splice(endIndex, 0, removed);
         
-        // 3. Shift the "Currently Playing" index so the music doesn't suddenly jump to the wrong song
         let newIndex = state.queueIndex;
         if (state.queueIndex === startIndex) {
           newIndex = endIndex;
@@ -105,18 +109,19 @@ export const usePlayerStore = create(
         } else if (startIndex > state.queueIndex && endIndex <= state.queueIndex) {
           newIndex += 1;
         }
-        
         return { queue: newQueue, queueIndex: newIndex };
       }),
-      
+
       clearQueue: () => set({ queue: [], queueIndex: -1 }),
     }),
     {
-      name: 'apple-music-settings', // The key it saves under in LocalStorage
-      // ONLY save these specific settings. We don't want to save the heavy library array!
+      name: 'apple-music-settings',
+      // ONLY persist volume, EQ settings, and playlists (ignore the heavy library)
       partialize: (state) => ({ 
         volume: state.volume, 
-        isQueueOpen: state.isQueueOpen 
+        isQueueOpen: state.isQueueOpen,
+        eqBands: state.eqBands,
+        playlists: state.playlists
       }),
     }
   )
