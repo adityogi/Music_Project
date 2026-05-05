@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export const usePlayerStore = create((set, get) => ({
   // Navigation State
-  currentView: 'home', // 'home', 'library', 'album'
+  currentView: 'home', 
   selectedAlbum: null,
   setView: (view, album = null) => set({ currentView: view, selectedAlbum: album }),
 
@@ -11,12 +11,13 @@ export const usePlayerStore = create((set, get) => ({
   albums: [],
   setLibrary: (songs, albums) => set({ library: songs, albums }),
 
-  // Playback State
+  // Playback & Queue State
   currentSong: null,
   isPlaying: false,
   queue: [],
   queueIndex: -1,
   volume: 1,
+  isQueueOpen: false,
 
   // Actions
   playSong: (song, newQueue = null) => {
@@ -29,34 +30,34 @@ export const usePlayerStore = create((set, get) => ({
       queueIndex: queueIndex !== -1 ? queueIndex : 0 
     });
   },
+  
   togglePlay: (forceState) => set((state) => ({ 
     isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
   })),
+  
   playNext: () => {
     const { queue, queueIndex } = get();
     if (queueIndex < queue.length - 1) {
       get().playSong(queue[queueIndex + 1]);
     }
   },
+  
   playPrev: () => {
     const { queue, queueIndex } = get();
     if (queueIndex > 0) {
       get().playSong(queue[queueIndex - 1]);
     }
   },
-  setVolume: (vol) => set({ volume: vol }),
-}));
-// Add this under your existing Playback State
-  isQueueOpen: false,
   
-  // Add these under your existing Actions
+  setVolume: (vol) => set({ volume: vol }),
+
+  // Queue Actions
   toggleQueue: () => set((state) => ({ isQueueOpen: !state.isQueueOpen })),
   
   removeFromQueue: (indexToRemove) => set((state) => {
     const newQueue = [...state.queue];
     newQueue.splice(indexToRemove, 1);
     
-    // If we removed a song that was BEFORE our current song, we need to shift the index back
     let newIndex = state.queueIndex;
     if (indexToRemove < state.queueIndex) {
       newIndex -= 1;
@@ -66,3 +67,4 @@ export const usePlayerStore = create((set, get) => ({
   }),
   
   clearQueue: () => set({ queue: [], queueIndex: -1 }),
+}));

@@ -12,7 +12,18 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
 }
 
-/* Custom Scrollbar to match the Apple Music dark theme */
+/* Force standard full-screen bounds and kill Vite's default centering */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background-color: var(--color-apple-bg);
+  overflow: hidden;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
