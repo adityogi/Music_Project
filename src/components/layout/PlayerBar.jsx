@@ -1,12 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, Shuffle, Repeat, Music } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useMediaSession } from '../../hooks/useMediaSession';
 
 export default function PlayerBar() {
   const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume } = usePlayerStore();
   const audioRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  useMediaSession({ currentSong, audioRef, playNext, playPrev, togglePlay, setProgress });
 
   // Safely handle play/pause toggling
   useEffect(() => {

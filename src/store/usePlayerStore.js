@@ -29,7 +29,9 @@ export const usePlayerStore = create((set, get) => ({
       queueIndex: queueIndex !== -1 ? queueIndex : 0 
     });
   },
-  togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
+  togglePlay: (forceState) => set((state) => ({ 
+    isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
+  })),
   playNext: () => {
     const { queue, queueIndex } = get();
     if (queueIndex < queue.length - 1) {
