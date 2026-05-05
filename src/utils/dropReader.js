@@ -47,3 +47,43 @@ export const extractFilesFromDrop = async (dataTransferItems) => {
 
   return files;
 };
+
+// Add these to the bottom of src/utils/dropReader.js
+
+export const extractFilesFromHandle = async (dirHandle) => {
+  const files = [];
+  
+  const traverse = async (handle, path = '') => {
+    // The modern File System Access API uses async iterators
+    for await (const entry of handle.values()) {
+      if (entry.kind === 'file') {
+        // Only extract actual audio files to keep memory usage low
+        if (/\.(mp3|wav|m4a|flac)$/i.test(entry.name)) {
+            const file = await entry.getFile();
+            // Polyfill the path so our ID3 parser knows the Artist/Album folder names
+            Object.defineProperty(file, 'webkitRelativePath', {
+              value: `${path}${file.name}`,
+              writable: false
+            });
+            files.push(file);
+        }
+      } else if (entry.kind === 'directory') {
+        await traverse(entry, `${path}${entry.name}/`);
+      }
+    }
+  };
+
+  await traverse(dirHandle);
+  return files;
+};
+
+export const verifyPermission = async (fileHandle) => {
+  // Browsers require us to verify we still have permission to read the folder
+  if ((await fileHandle.queryPermission({ mode: 'read' })) === 'granted') {
+    return true;
+  }
+  if ((await fileHandle.requestPermission({ mode: 'read' })) === 'granted') {
+    return true;
+  }
+  return false;
+};
