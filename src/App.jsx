@@ -24,8 +24,10 @@ export default function App() {
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dragCounter.current += 1;
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+    
+    // THE FIX: Only trigger the overlay if the user is dragging files from the OS
+    if (e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+      dragCounter.current += 1;
       setIsDragging(true);
     }
   };
@@ -33,10 +35,12 @@ export default function App() {
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dragCounter.current -= 1;
-    // Only hide if we actually left the main browser window
-    if (dragCounter.current === 0) {
-      setIsDragging(false);
+    
+    if (e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+      dragCounter.current -= 1;
+      if (dragCounter.current === 0) {
+        setIsDragging(false);
+      }
     }
   };
 
