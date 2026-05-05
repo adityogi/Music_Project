@@ -11,6 +11,7 @@ import { extractFilesFromDrop } from './utils/dropReader';
 import { parseLocalFolder } from './utils/musicParser';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import LyricsOverlay from './components/layout/LyricsOverlay';
+import AmbientBackground from './components/layout/AmbientBackground';
 
 export default function App() {
   const { currentView, setLibrary, setView } = usePlayerStore();
@@ -74,12 +75,13 @@ export default function App() {
 
   return (
     <div 
-      className="w-full h-full flex flex-col font-sans overflow-hidden select-none bg-apple-bg relative"
+      className="w-full h-full flex flex-col font-sans overflow-hidden select-none relative bg-transparent"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      <AmbientBackground />
       <PlayerBar />
       <div className="flex flex-1 overflow-hidden relative w-full">
         <Sidebar />
