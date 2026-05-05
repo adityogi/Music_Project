@@ -76,8 +76,7 @@ export default function PlayerBar() {
               <span className="text-[10px] font-medium text-apple-muted w-8 text-right shrink-0">
                 -{formatTime(duration - progress)}
               </span>
-            </div>
-            
+            </div> 
             <div className="absolute bottom-0 left-0 h-[3px] bg-apple-border w-full group-hover:h-[5px] transition-all">
               <div 
                 className="absolute top-0 left-0 h-full bg-apple-text group-hover:bg-apple-red pointer-events-none transition-all duration-75 ease-linear" 

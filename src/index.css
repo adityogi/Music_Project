@@ -12,6 +12,38 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
 }
 
+/* 
+  NUKE VITE DEFAULTS 
+  This forces the app to take up the true full screen and kills the 1280px centering 
+*/
+:root, html, body, #root {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  background-color: var(--color-apple-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-apple-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-apple-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4c;
+}
+
 /* Force standard full-screen bounds and kill Vite's default centering */
 html, body, #root {
   width: 100%;
