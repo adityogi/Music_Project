@@ -4,21 +4,21 @@ import { persist } from 'zustand/middleware';
 export const usePlayerStore = create(
   persist(
     (set, get) => ({
-      // --- NAVIGATION STATE ---
+      // --- CORE STATE ---
       currentView: 'home', 
       selectedAlbum: null,
-      setView: (view, album = null) => set({ currentView: view, selectedAlbum: album }),
-
-      // --- LIBRARY STATE ---
       library: [],
       albums: [],
-      setLibrary: (songs, albums) => set({ library: songs, albums }),
-
-      // --- SEARCH STATE ---
       searchQuery: '',
+      playlists: [],
+      setView: (view, album = null) => set({ currentView: view, selectedAlbum: album }),
+      setLibrary: (songs, albums) => set({ 
+        library: Array.isArray(songs) ? songs : [], 
+        albums: Array.isArray(albums) ? albums : [] 
+      }),
       setSearchQuery: (query) => set({ searchQuery: query }),
 
-      // --- PLAYBACK & QUEUE STATE ---
+      // --- PLAYBACK ---
       currentSong: null,
       isPlaying: false,
       queue: [],
@@ -26,100 +26,88 @@ export const usePlayerStore = create(
       volume: 1,
       isQueueOpen: false,
 
-      // --- LYRICS STATE ---
+      // --- OVERLAYS ---
       isLyricsOpen: false,
-      currentLyrics: [],
-      toggleLyrics: () => set((state) => ({ isLyricsOpen: !state.isLyricsOpen })),
-      setLyrics: (lyrics) => set({ currentLyrics: lyrics }),
-
-      // --- EQUALIZER STATE ---
       isEqOpen: false,
+      currentLyrics: [],
+      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+
+      toggleLyrics: () => set((state) => ({ isLyricsOpen: !state.isLyricsOpen })),
       toggleEq: () => set((state) => ({ isEqOpen: !state.isEqOpen })),
-      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+      toggleQueue: () => set((state) => ({ isQueueOpen: !state.isQueueOpen })),
+      setLyrics: (lyrics) => set({ currentLyrics: Array.isArray(lyrics) ? lyrics : [] }),
+      
       setEqBand: (index, value) => set((state) => {
-        const newBands = [...state.eqBands];
+        const bands = state.eqBands || [0,0,0,0,0,0,0,0,0,0];
+        const newBands = [...bands];
         newBands[index] = value;
         return { eqBands: newBands };
       }),
       resetEq: () => set({ eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }),
 
-      // --- PLAYLIST STATE ---
-      playlists: [],
+      // --- PLAYLIST ACTIONS ---
       createPlaylist: (name) => set((state) => ({
-        playlists: [...state.playlists, { id: Date.now().toString(), name: name, songs: [] }]
-      })),
-      addToPlaylist: (playlistId, song) => set((state) => ({
-        playlists: state.playlists.map(p => 
-          p.id === playlistId ? { ...p, songs: [...p.songs, song] } : p
-        )
+        playlists: [...(state.playlists || []), { id: Date.now().toString(), name, songs: [] }]
       })),
 
-      // --- ACTIONS ---
+      // --- PLAYBACK ACTIONS ---
       playSong: (song, newQueue = null) => {
-        const queue = newQueue || get().queue;
-        const queueIndex = queue.findIndex(s => s.id === song.id);
+        if (!song) return;
+        const q = newQueue || get().queue || [];
+        const idx = q.findIndex(s => s.id === song.id);
         set({ 
           currentSong: song, 
           isPlaying: true, 
-          queue, 
-          queueIndex: queueIndex !== -1 ? queueIndex : 0 
+          queue: q, 
+          queueIndex: idx !== -1 ? idx : 0 
         });
       },
       
-      togglePlay: (forceState) => set((state) => ({ 
-        isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
+      togglePlay: (force) => set((state) => ({ 
+        isPlaying: typeof force === 'boolean' ? force : !state.isPlaying 
       })),
       
       playNext: () => {
         const { queue, queueIndex } = get();
-        if (queueIndex < queue.length - 1) {
+        if (queue && queueIndex < queue.length - 1) {
           get().playSong(queue[queueIndex + 1]);
         }
       },
       
       playPrev: () => {
         const { queue, queueIndex } = get();
-        if (queueIndex > 0) {
+        if (queue && queueIndex > 0) {
           get().playSong(queue[queueIndex - 1]);
         }
       },
       
-      setVolume: (vol) => set({ volume: vol }),
-      toggleQueue: () => set((state) => ({ isQueueOpen: !state.isQueueOpen })),
+      setVolume: (v) => set({ volume: v }),
       
-      removeFromQueue: (indexToRemove) => set((state) => {
-        const newQueue = [...state.queue];
-        newQueue.splice(indexToRemove, 1);
-        let newIndex = state.queueIndex;
-        if (indexToRemove < state.queueIndex) newIndex -= 1;
-        return { queue: newQueue, queueIndex: newIndex };
+      removeFromQueue: (i) => set((state) => {
+        const nq = [...(state.queue || [])];
+        nq.splice(i, 1);
+        return { queue: nq, queueIndex: i < state.queueIndex ? state.queueIndex - 1 : state.queueIndex };
       }),
       
-      reorderQueue: (startIndex, endIndex) => set((state) => {
-        if (startIndex === endIndex) return state;
-        const newQueue = [...state.queue];
-        const [removed] = newQueue.splice(startIndex, 1);
-        newQueue.splice(endIndex, 0, removed);
+      reorderQueue: (s, e) => set((state) => {
+        const q = state.queue || [];
+        if (s === e || !q[s]) return state;
+        const nq = [...q];
+        const [r] = nq.splice(s, 1);
+        nq.splice(e, 0, r);
         
-        let newIndex = state.queueIndex;
-        if (state.queueIndex === startIndex) {
-          newIndex = endIndex;
-        } else if (startIndex < state.queueIndex && endIndex >= state.queueIndex) {
-          newIndex -= 1;
-        } else if (startIndex > state.queueIndex && endIndex <= state.queueIndex) {
-          newIndex += 1;
-        }
-        return { queue: newQueue, queueIndex: newIndex };
+        let ni = state.queueIndex;
+        if (state.queueIndex === s) ni = e;
+        else if (s < state.queueIndex && e >= state.queueIndex) ni -= 1;
+        else if (s > state.queueIndex && e <= state.queueIndex) ni += 1;
+        
+        return { queue: nq, queueIndex: ni };
       }),
-
-      clearQueue: () => set({ queue: [], queueIndex: -1 }),
     }),
     {
       name: 'apple-music-settings',
-      // ONLY persist volume, EQ settings, and playlists (ignore the heavy library)
       partialize: (state) => ({ 
         volume: state.volume, 
-        isQueueOpen: state.isQueueOpen,
         eqBands: state.eqBands,
         playlists: state.playlists
       }),
