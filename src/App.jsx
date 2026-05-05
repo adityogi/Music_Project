@@ -9,9 +9,11 @@ import AlbumDetailView from './views/AlbumDetailView';
 import { usePlayerStore } from './store/usePlayerStore';
 import { extractFilesFromDrop } from './utils/dropReader';
 import { parseLocalFolder } from './utils/musicParser';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export default function App() {
   const { currentView, setLibrary, setView } = usePlayerStore();
+  useKeyboardShortcuts();
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const dragCounter = useRef(0);
