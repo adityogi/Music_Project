@@ -1,17 +1,32 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, Music, ListMusic, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, Music, ListMusic, Mic2, SlidersHorizontal } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMediaSession } from '../../hooks/useMediaSession';
 import { formatTime } from '../../utils/timeFormat';
 import LCDVisualizer from '../ui/LCDVisualizer';
 
-
 export default function PlayerBar() {
-  const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume, isQueueOpen, toggleQueue, isLyricsOpen, toggleLyrics } = usePlayerStore();
+  const { 
+    currentSong, 
+    isPlaying, 
+    playNext, 
+    playPrev, 
+    togglePlay, 
+    volume, 
+    setVolume, 
+    isQueueOpen, 
+    toggleQueue, 
+    isLyricsOpen, 
+    toggleLyrics,
+    isEqOpen,
+    toggleEq
+  } = usePlayerStore();
+  
   const audioRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // Hook into OS Media Keys
   useMediaSession({ currentSong, audioRef, playNext, playPrev, togglePlay, setProgress });
 
   useEffect(() => {
@@ -36,7 +51,7 @@ export default function PlayerBar() {
   };
 
   return (
-    <header className="h-16 bg-[#2c2c2e] border-b border-apple-border flex items-center justify-between px-4 z-50 shrink-0 w-full">
+    <header className="h-16 bg-[#2c2c2e] border-b border-apple-border flex items-center justify-between px-4 z-50 shrink-0 w-full relative">
       <audio 
         ref={audioRef} 
         src={currentSong?.url}
@@ -109,15 +124,25 @@ export default function PlayerBar() {
         <button 
           onClick={toggleLyrics} 
           className={`transition ${isLyricsOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}
+          title="Lyrics"
         >
-          <Mic2 className="w-5 h-5 shrink-0"/>
+          <Mic2 className="w-5 h-5 shrink-0" />
+        </button>
+        <button 
+          onClick={toggleEq} 
+          className={`transition ${isEqOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}
+          title="Equalizer"
+        >
+          <SlidersHorizontal className="w-5 h-5 shrink-0" />
         </button>
         <button 
           onClick={toggleQueue} 
           className={`transition ${isQueueOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}
+          title="Queue"
         >
           <ListMusic className="w-5 h-5 shrink-0" />
         </button>
+        
         <Volume2 className="w-4 h-4 text-apple-muted shrink-0" />
         <input 
           type="range" min="0" max="1" step="0.01" value={volume} 

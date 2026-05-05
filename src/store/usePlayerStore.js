@@ -44,6 +44,18 @@ export const usePlayerStore = create(
         isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
       })),
       
+      // Equalizer State
+      isEqOpen: false,
+      toggleEq: () => set((state) => ({ isEqOpen: !state.isEqOpen })),
+      // 10 bands from 32Hz (Bass) to 16kHz (Treble), starting at 0dB (flat)
+      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+      setEqBand: (index, value) => set((state) => {
+        const newBands = [...state.eqBands];
+        newBands[index] = value;
+        return { eqBands: newBands };
+      }),
+      resetEq: () => set({ eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }),
+
       playNext: () => {
         const { queue, queueIndex } = get();
         if (queueIndex < queue.length - 1) {

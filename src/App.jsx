@@ -6,16 +6,20 @@ import QueueDrawer from './components/layout/QueueDrawer';
 import HomeView from './views/HomeView';
 import LibraryView from './views/LibraryView';
 import AlbumDetailView from './views/AlbumDetailView';
+import AmbientBackground from './components/layout/AmbientBackground';
+import LyricsOverlay from './components/layout/LyricsOverlay';
+import EqualizerModal from './components/layout/EqualizerModal';
 import { usePlayerStore } from './store/usePlayerStore';
 import { extractFilesFromDrop } from './utils/dropReader';
 import { parseLocalFolder } from './utils/musicParser';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import LyricsOverlay from './components/layout/LyricsOverlay';
-import AmbientBackground from './components/layout/AmbientBackground';
 
 export default function App() {
   const { currentView, setLibrary, setView } = usePlayerStore();
+  
+  // Initialize Global Keyboard Shortcuts
   useKeyboardShortcuts();
+
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const dragCounter = useRef(0);
@@ -25,7 +29,7 @@ export default function App() {
     e.preventDefault();
     e.stopPropagation();
     
-    // THE FIX: Only trigger the overlay if the user is dragging files from the OS
+    // Only trigger the overlay if the user is dragging files from the OS
     if (e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
       dragCounter.current += 1;
       setIsDragging(true);
@@ -47,27 +51,21 @@ export default function App() {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // onDragOver must be prevented to allow a drop
   };
 
   const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    dragCounter.current = 0; // Reset the counter
+    dragCounter.current = 0;
     
     if (!e.dataTransfer.items || e.dataTransfer.items.length === 0) return;
 
-    setIsProcessing(true); // Show a loading state if parsing a massive folder
+    setIsProcessing(true);
     
     try {
-      // 1. Unpack the dropped folder
       const rawFiles = await extractFilesFromDrop(e.dataTransfer.items);
-      
-      // 2. Pass it to our existing ID3 parser
       const { songs, albums } = await parseLocalFolder(rawFiles);
-      
-      // 3. Update the global state
       setLibrary(songs, albums);
       setView('library');
     } catch (error) {
@@ -85,9 +83,12 @@ export default function App() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* The dynamic glowing background */}
       <AmbientBackground />
+
       <PlayerBar />
-      <div className="flex flex-1 overflow-hidden relative w-full">
+      
+      <div className="flex flex-1 overflow-hidden relative w-full z-10">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto relative p-8 pb-32">
@@ -97,10 +98,11 @@ export default function App() {
         </main>
 
         <QueueDrawer />
-        <LyricsOverlay/>
+        <LyricsOverlay />
+        <EqualizerModal />
       </div>
 
-      {/* Drag & Drop Overlay */}
+      {/* OS File Drag & Drop Overlay */}
       {isDragging && (
         <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-md border-4 border-dashed border-apple-red m-4 rounded-2xl flex flex-col items-center justify-center pointer-events-none animate-in fade-in duration-200">
           <div className="bg-apple-red/20 p-8 rounded-full mb-6">
