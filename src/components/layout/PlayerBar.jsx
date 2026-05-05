@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, Music, ListMusic } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, Music, ListMusic, Mic2 } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMediaSession } from '../../hooks/useMediaSession';
 import { formatTime } from '../../utils/timeFormat';
 import LCDVisualizer from '../ui/LCDVisualizer';
 
+
 export default function PlayerBar() {
-  const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume, isQueueOpen, toggleQueue } = usePlayerStore();
+  const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume, isQueueOpen, toggleQueue, isLyricsOpen, toggleLyrics } = usePlayerStore();
   const audioRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -105,6 +106,12 @@ export default function PlayerBar() {
 
       {/* Right Controls */}
       <div className="w-1/4 flex items-center justify-end gap-4 pr-4">
+        <button 
+          onClick={toggleLyrics} 
+          className={`transition ${isLyricsOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}
+        >
+          <Mic2 className="w-5 h-5 shrink-0"/>
+        </button>
         <button 
           onClick={toggleQueue} 
           className={`transition ${isQueueOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}

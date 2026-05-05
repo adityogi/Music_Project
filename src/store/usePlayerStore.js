@@ -34,6 +34,12 @@ export const usePlayerStore = create(
         });
       },
       
+      // Lyrics State
+      isLyricsOpen: false,
+      currentLyrics: [],
+      toggleLyrics: () => set((state) => ({ isLyricsOpen: !state.isLyricsOpen })),
+      setLyrics: (lyrics) => set({ currentLyrics: lyrics }),
+
       togglePlay: (forceState) => set((state) => ({ 
         isPlaying: typeof forceState === 'boolean' ? forceState : !state.isPlaying 
       })),

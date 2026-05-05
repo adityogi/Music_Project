@@ -10,6 +10,7 @@ import { usePlayerStore } from './store/usePlayerStore';
 import { extractFilesFromDrop } from './utils/dropReader';
 import { parseLocalFolder } from './utils/musicParser';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import LyricsOverlay from './components/layout/LyricsOverlay';
 
 export default function App() {
   const { currentView, setLibrary, setView } = usePlayerStore();
@@ -90,6 +91,7 @@ export default function App() {
         </main>
 
         <QueueDrawer />
+        <LyricsOverlay/>
       </div>
 
       {/* Drag & Drop Overlay */}
