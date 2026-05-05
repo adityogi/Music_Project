@@ -3,6 +3,7 @@ import { Play, Pause, SkipForward, SkipBack, Volume2, Music, ListMusic } from 'l
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMediaSession } from '../../hooks/useMediaSession';
 import { formatTime } from '../../utils/timeFormat';
+import LCDVisualizer from '../ui/LCDVisualizer';
 
 export default function PlayerBar() {
   const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume, isQueueOpen, toggleQueue } = usePlayerStore();
@@ -58,12 +59,16 @@ export default function PlayerBar() {
       </div>
 
       {/* Center LCD */}
-      <div className="flex-1 max-w-md mx-4 h-12 bg-apple-bg border border-apple-border rounded flex flex-col justify-center relative overflow-hidden shadow-inner group">
+      <div className="flex-1 max-w-md mx-4 h-12 bg-apple-bg border border-apple-border rounded flex flex-col justify-center relative shadow-inner group overflow-hidden">
+        
+        {/* Live Audio Visualizer Canvas */}
+        <LCDVisualizer audioRef={audioRef} />
+
         {currentSong ? (
           <>
-            <div className="flex items-center justify-between px-3 w-full pb-1 h-full">
+            <div className="flex items-center justify-between px-3 w-full pb-1 h-full relative z-10 pointer-events-none">
               <div 
-                className="w-8 h-8 rounded-sm bg-cover bg-center shrink-0 shadow-sm border border-apple-border/50 mr-2"
+                className="w-8 h-8 rounded-sm bg-cover bg-center shrink-0 shadow-sm border border-apple-border/50 mr-2 pointer-events-auto"
                 style={{ backgroundImage: currentSong.coverUrl ? `url(${currentSong.coverUrl})` : 'none', backgroundColor: '#3a3a3c' }}
               />
               <span className="text-[10px] font-medium text-apple-muted w-8 text-left shrink-0">
@@ -76,8 +81,10 @@ export default function PlayerBar() {
               <span className="text-[10px] font-medium text-apple-muted w-8 text-right shrink-0">
                 -{formatTime(duration - progress)}
               </span>
-            </div> 
-            <div className="absolute bottom-0 left-0 h-[3px] bg-apple-border w-full group-hover:h-[5px] transition-all">
+            </div>
+            
+            {/* Scrubber Bar */}
+            <div className="absolute bottom-0 left-0 h-[3px] bg-apple-border w-full group-hover:h-[5px] transition-all z-20 rounded-b">
               <div 
                 className="absolute top-0 left-0 h-full bg-apple-text group-hover:bg-apple-red pointer-events-none transition-all duration-75 ease-linear" 
                 style={{ width: `${(progress / (duration || 1)) * 100}%` }} 
@@ -90,7 +97,7 @@ export default function PlayerBar() {
             </div>
           </>
         ) : (
-          <div className="w-full text-center text-apple-muted text-xs font-medium flex items-center justify-center gap-2 h-full">
+          <div className="w-full text-center text-apple-muted text-xs font-medium flex items-center justify-center gap-2 h-full relative z-10">
             <Music className="w-3 h-3 shrink-0" /> Apple Music
           </div>
         )}
