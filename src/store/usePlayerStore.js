@@ -46,3 +46,23 @@ export const usePlayerStore = create((set, get) => ({
   },
   setVolume: (vol) => set({ volume: vol }),
 }));
+// Add this under your existing Playback State
+  isQueueOpen: false,
+  
+  // Add these under your existing Actions
+  toggleQueue: () => set((state) => ({ isQueueOpen: !state.isQueueOpen })),
+  
+  removeFromQueue: (indexToRemove) => set((state) => {
+    const newQueue = [...state.queue];
+    newQueue.splice(indexToRemove, 1);
+    
+    // If we removed a song that was BEFORE our current song, we need to shift the index back
+    let newIndex = state.queueIndex;
+    if (indexToRemove < state.queueIndex) {
+      newIndex -= 1;
+    }
+    
+    return { queue: newQueue, queueIndex: newIndex };
+  }),
+  
+  clearQueue: () => set({ queue: [], queueIndex: -1 }),

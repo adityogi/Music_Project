@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, Shuffle, Repeat, Music } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMediaSession } from '../../hooks/useMediaSession';
+import { Play, Pause, SkipForward, SkipBack, Volume2, Shuffle, Repeat, Music, ListMusic } from 'lucide-react';
 
 export default function PlayerBar() {
   const { currentSong, isPlaying, playNext, playPrev, togglePlay, volume, setVolume } = usePlayerStore();
@@ -120,14 +121,21 @@ export default function PlayerBar() {
       </div>
 
       {/* Right Controls (Volume) */}
-      <div className="w-1/4 flex items-center justify-end space-x-4">
-        <Volume2 size={16} className="text-apple-muted" />
-        <input 
-          type="range" min="0" max="1" step="0.01" value={volume} 
-          onChange={(e) => setVolume(parseFloat(e.target.value))}
-          className="w-24 h-1.5 bg-apple-border rounded-lg appearance-none cursor-pointer accent-white"
-        />
-      </div>
+    <div className="w-1/4 flex items-center justify-end space-x-4 pr-4">
+     <button 
+        onClick={() => usePlayerStore.getState().toggleQueue()} 
+        className={`transition ${usePlayerStore.getState().isQueueOpen ? 'text-apple-red' : 'text-apple-muted hover:text-white'}`}
+     >
+       <ListMusic size="{18}"/>
+     </button>
+     
+     <Volume2 size="{16}" className="text-apple-muted ml-2"/>
+     <input 
+       type="range" min="0" max="1" step="0.01" value={volume} 
+       onChange={(e) => setVolume(parseFloat(e.target.value))}
+       className="w-24 h-1.5 bg-apple-border rounded-lg appearance-none cursor-pointer accent-white"
+     />
+   </div>
     </header>
   );
 }
