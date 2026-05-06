@@ -1,11 +1,104 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Core Backgrounds */
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-container-lowest: var(--surface-lowest);
+  --color-surface-container-low: var(--surface-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-high);
+  --color-surface-container-highest: var(--surface-highest);
+  
+  /* Text & Foreground */
+  --color-on-background: var(--on-bg);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-var);
+  
+  /* Accents */
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  
+  /* Secondary Elements */
+  --color-secondary: #c8c6c8;
+  --color-on-secondary: #303032;
+  --color-secondary-container: #474649;
+  --color-on-secondary-container: #b6b4b7;
+  
+  /* Borders */
+  --color-outline: #ae8785;
+  --color-outline-variant: #5e3f3d;
+
+  /* Spacing */
+  --spacing-sidebar-width: 260px;
+  --spacing-player-height: 88px;
+  --spacing-margin-safe: 32px;
+  --spacing-gutter: 24px;
+  
+  /* Typography */
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Inter", sans-serif;
+}
 
 @layer base {
+  :root {
+    /* Theme 1: Default Apple Red */
+    --bg: #121317;
+    --surface: #121317;
+    --surface-lowest: #0d0e12;
+    --surface-low: #1a1b1f;
+    --surface-container: #1e1f23;
+    --surface-high: #292a2e;
+    --surface-highest: #343539;
+    --on-bg: #e3e2e7;
+    --on-surface: #e3e2e7;
+    --on-surface-var: #e8bcba;
+    --primary: #ffb3b0;
+    --on-primary: #68000f;
+    --primary-container: #ff5357;
+    --on-primary-container: #5c000c;
+  }
+
+  [data-theme="forest"] {
+    /* Theme 2: Forest Deep */
+    --bg: #081612;
+    --surface: #081612;
+    --surface-lowest: #04110d;
+    --surface-low: #101e1a;
+    --surface-container: #14221e;
+    --surface-high: #1e2d28;
+    --surface-highest: #293833;
+    --on-bg: #d5e6df;
+    --on-surface: #d5e6df;
+    --on-surface-var: #c4c7c2;
+    --primary: #c4c7c2;
+    --on-primary: #2d312e;
+    --primary-container: #00a572;
+    --on-primary-container: #00311f;
+  }
+
+  [data-theme="slate"] {
+    /* Theme 3: Monochrome Slate */
+    --bg: #0a0b10;
+    --surface: #0a0b10;
+    --surface-lowest: #060f16;
+    --surface-low: #141c24;
+    --surface-container: #182028;
+    --surface-high: #222b33;
+    --surface-highest: #2d363e;
+    --on-bg: #dae3ee;
+    --on-surface: #dae3ee;
+    --on-surface-var: #b9cacb;
+    --primary: #dbfcff;
+    --on-primary: #00363a;
+    --primary-container: #00f0ff;
+    --on-primary-container: #006970;
+  }
+
   body {
-    @apply bg-background text-on-surface font-sans antialiased overflow-hidden selection:bg-primary-container/30;
+    @apply bg-background text-on-surface font-sans antialiased overflow-hidden selection:bg-primary-container/30 transition-colors duration-500;
   }
 }
 
@@ -15,34 +108,16 @@
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
   }
-  
   .glass-overlay {
     background: rgba(41, 42, 46, 0.85);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* Custom Main Scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 }
