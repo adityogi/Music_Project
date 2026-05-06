@@ -105,11 +105,35 @@ export default function App() {
       {/* Main Layout Wrapper */}
       <div className="flex flex-1 h-[calc(100vh-88px)] w-full relative z-10 pt-[72px]">
         <Sidebar />
+        {/* Main Content Area */}
         <main className={`flex-1 h-full overflow-y-auto custom-scrollbar px-8 pb-32 relative z-10 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-[260px]'}`}>
-          {currentView === 'home' && <HomeView />}
-          {currentView === 'library' && <LibraryView />}
-          {currentView === 'album' && <AlbumDetailView />}
-          {currentView.startsWith('playlist-') && <PlaylistView playlistId={currentView.split('-')[1]} />}
+          {(() => {
+            // 1. Map Home, Browse, and Radio to the HomeView (since it has your discovery content)
+            if (['home', 'browse', 'radio'].includes(currentView)) {
+              return <HomeView />;
+            }
+            
+            // 2. Standard Library
+            if (currentView === 'library') {
+              return <LibraryView />;
+            }
+            
+            // 3. Album View with a safety fallback
+            if (currentView === 'album') {
+              const { selectedAlbum } = usePlayerStore.getState();
+              // If refreshed and album data is lost, fallback to Library
+              if (!selectedAlbum) return <LibraryView />; 
+              return <AlbumDetailView />;
+            }
+            
+            // 4. Playlists
+            if (currentView.startsWith('playlist-')) {
+              return <PlaylistView playlistId={currentView.split('-')[1]} />;
+            }
+
+            // 5. Ultimate Fallback (prevents blank screens if view is completely unknown)
+            return <HomeView />;
+          })()}
         </main>
       </div>
 
