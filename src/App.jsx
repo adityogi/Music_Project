@@ -16,6 +16,7 @@ import { usePlayerStore } from './store/usePlayerStore';
 import { extractFilesFromDrop } from './utils/dropReader';
 import { parseLocalFolder } from './utils/musicParser';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { downloadFolderStructure } from './utils/treeGenerator';
 
 export default function App() {
   const { currentView, setLibrary, setView, toggleTheme, currentTheme, isSidebarCollapsed } = usePlayerStore();
@@ -55,12 +56,16 @@ export default function App() {
     if (!e.dataTransfer.items || e.dataTransfer.items.length === 0) return;
     
     setIsProcessing(true);
-    setScanProgress({ current: 0, total: 0 }); // Reset progress
+    setScanProgress({ current: 0, total: 0 });
     
     try {
+      // 1. Read all files (Now safely handles > 100 files!)
       const rawFiles = await extractFilesFromDrop(e.dataTransfer.items);
       
-      // Pass the progress updater to the parser
+      // 2. Generate and automatically download the folder structure tree
+      downloadFolderStructure(rawFiles, "Supermix Library");
+      
+      // 3. Parse Metadata for the UI
       const { songs, albums } = await parseLocalFolder(rawFiles, (current, total) => {
         setScanProgress({ current, total });
       });
