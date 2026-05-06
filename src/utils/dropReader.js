@@ -1,89 +1,66 @@
-export const extractFilesFromDrop = async (dataTransferItems) => {
-  const files = [];
-  const entries = [];
+const SUPPORTED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/x-m4a', 'audio/flac', 'audio/aac', 'audio/ogg'];
+const SUPPORTED_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.flac', '.aac', '.ogg'];
 
-  // Grab the root items dropped into the window
-  for (let i = 0; i < dataTransferItems.length; i++) {
-    const item = dataTransferItems[i];
-    if (item.kind === 'file') {
-      entries.push(item.webkitGetAsEntry());
-    }
-  }
-
-  // Recursive function to dig through directories
-  const traverseEntry = async (entry, path = '') => {
-    if (!entry) return;
-
-    if (entry.isFile) {
-      const file = await new Promise((resolve) => entry.file(resolve));
-      
-      // Polyfill webkitRelativePath so our existing musicParser doesn't break
-      // We manually attach the folder path structure to the file object
-      Object.defineProperty(file, 'webkitRelativePath', {
-        value: entry.fullPath.replace(/^\//, ''), // Remove leading slash
-        writable: false
-      });
-      
-      files.push(file);
-    } else if (entry.isDirectory) {
-      const dirReader = entry.createReader();
-      
-      // Read all entries in this directory
-      const dirEntries = await new Promise((resolve) => {
-        dirReader.readEntries(resolve);
-      });
-      
-      // Recursively traverse them
-      for (const e of dirEntries) {
-        await traverseEntry(e, `${path}${entry.name}/`);
-      }
-    }
-  };
-
-  // Start the traversal for all dropped items
-  for (const entry of entries) {
-    await traverseEntry(entry);
-  }
-
-  return files;
-};
-
-// Add these to the bottom of src/utils/dropReader.js
-
-export const extractFilesFromHandle = async (dirHandle) => {
+// Handles extracting files from a modern FileSystemDirectoryHandle
+export async function extractFilesFromHandle(directoryHandle) {
   const files = [];
   
-  const traverse = async (handle, path = '') => {
-    // The modern File System Access API uses async iterators
-    for await (const entry of handle.values()) {
+  async function scanDirectory(dirHandle) {
+    for await (const entry of dirHandle.values()) {
       if (entry.kind === 'file') {
-        // Only extract actual audio files to keep memory usage low
-        if (/\.(mp3|wav|m4a|flac)$/i.test(entry.name)) {
-            const file = await entry.getFile();
-            // Polyfill the path so our ID3 parser knows the Artist/Album folder names
-            Object.defineProperty(file, 'webkitRelativePath', {
-              value: `${path}${file.name}`,
-              writable: false
-            });
-            files.push(file);
+        const file = await entry.getFile();
+        if (SUPPORTED_AUDIO_TYPES.includes(file.type) || SUPPORTED_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext))) {
+          files.push(file);
         }
       } else if (entry.kind === 'directory') {
-        await traverse(entry, `${path}${entry.name}/`);
+        await scanDirectory(entry);
       }
     }
-  };
+  }
 
-  await traverse(dirHandle);
+  await scanDirectory(directoryHandle);
   return files;
-};
+}
 
-export const verifyPermission = async (fileHandle) => {
-  // Browsers require us to verify we still have permission to read the folder
-  if ((await fileHandle.queryPermission({ mode: 'read' })) === 'granted') {
-    return true;
+// Handles extracting files from drag-and-drop DataTransferItems
+export async function extractFilesFromDrop(items) {
+  const files = [];
+  const queue = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.kind === 'file') {
+      const entry = item.webkitGetAsEntry();
+      if (entry) queue.push(entry);
+    }
   }
-  if ((await fileHandle.requestPermission({ mode: 'read' })) === 'granted') {
-    return true;
+
+  async function readEntry(entry) {
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        entry.file((file) => {
+          if (SUPPORTED_AUDIO_TYPES.includes(file.type) || SUPPORTED_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext))) {
+            files.push(file);
+          }
+          resolve();
+        });
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      return new Promise((resolve) => {
+        dirReader.readEntries(async (entries) => {
+          for (let i = 0; i < entries.length; i++) {
+            await readEntry(entries[i]);
+          }
+          resolve();
+        });
+      });
+    }
   }
-  return false;
-};
+
+  for (const entry of queue) {
+    await readEntry(entry);
+  }
+
+  return files;
+}

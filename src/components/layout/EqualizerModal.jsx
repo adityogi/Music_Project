@@ -1,65 +1,80 @@
-import React from 'react';
-import { SlidersHorizontal, X, RotateCcw } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { X, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 
 export default function EqualizerModal() {
   const { isEqOpen, toggleEq, eqBands, setEqBand, resetEq } = usePlayerStore();
+  const modalRef = useRef(null);
+  
+  const frequencies = ['32', '64', '125', '250', '500', '1K', '2K', '4K', '8K', '16K'];
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) toggleEq();
+    };
+    if (isEqOpen) window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [isEqOpen, toggleEq]);
 
   if (!isEqOpen) return null;
 
-  const labels = ['32', '64', '125', '250', '500', '1K', '2K', '4K', '8K', '16K'];
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#242426] border border-apple-border rounded-2xl p-6 shadow-2xl w-full max-w-2xl">
-        
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div 
+        ref={modalRef} 
+        className="w-full max-w-2xl bg-surface-container-high/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200"
+      >
         {/* Header */}
-        <div className="flex justify-between items-center mb-8 border-b border-apple-border pb-4">
+        <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            <SlidersHorizontal className="text-apple-red" size={24} />
-            <h2 className="text-xl font-bold text-white">Graphic Equalizer</h2>
+            <div className="p-2 bg-primary-container/20 rounded-lg text-primary-container">
+              <SlidersHorizontal size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Equalizer</h2>
+              <p className="text-sm text-on-surface-variant font-medium">10-Band Graphic EQ</p>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <button onClick={resetEq} className="text-apple-muted hover:text-white transition flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={resetEq}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-on-surface-variant hover:text-white transition-colors text-sm font-semibold border border-white/5"
+            >
               <RotateCcw size={16} /> Reset
             </button>
-            <button onClick={toggleEq} className="text-apple-muted hover:text-white transition">
+            <button onClick={toggleEq} className="p-2 text-on-surface-variant hover:text-white transition-colors rounded-full hover:bg-white/10">
               <X size={24} />
             </button>
           </div>
         </div>
 
-        {/* 10-Band Mixing Board */}
-        <div className="flex justify-between items-end h-64 px-2">
-          {eqBands.map((bandValue, index) => (
-            <div key={index} className="flex flex-col items-center h-full">
-              {/* dB Label */}
-              <span className="text-xs font-mono text-apple-muted mb-4 h-4">
-                {bandValue > 0 ? '+' : ''}{bandValue.toFixed(1)}
-              </span>
+        {/* Sliders */}
+        <div className="flex justify-between items-center h-64 px-4">
+          {eqBands.map((value, index) => (
+            <div key={index} className="flex flex-col items-center gap-6 h-full">
+              <span className="text-xs font-bold text-on-surface-variant">{value > 0 ? `+${value}` : value}</span>
               
-              {/* Vertical Slider Wrapper */}
-              <div className="relative flex-1 w-8 flex justify-center py-2">
-                {/* Center Zero Line */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-[2px] bg-apple-border/50 z-0 pointer-events-none" />
+              <div className="relative flex-1 flex items-center justify-center w-8">
+                {/* Zero Line */}
+                <div className="absolute top-1/2 -translate-y-1/2 w-full h-[2px] bg-white/10 rounded pointer-events-none z-0"></div>
                 
-                {/* The Input */}
+                {/* Vertical Range Input */}
                 <input
                   type="range"
                   min="-12"
                   max="12"
                   step="0.5"
-                  value={bandValue}
+                  value={value}
                   onChange={(e) => setEqBand(index, parseFloat(e.target.value))}
-                  // CSS hack to make range sliders vertical
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-1.5 bg-apple-border rounded-lg appearance-none cursor-ns-resize accent-apple-red z-10"
-                  style={{ transform: 'translate(-50%, -50%) rotate(-90deg)' }}
+                  className="absolute w-48 h-1 bg-white/10 rounded-full appearance-none outline-none cursor-pointer -rotate-90 origin-center z-10"
+                  style={{
+                    background: `linear-gradient(to right, rgba(var(--color-primary-container), 0.2) 0%, var(--color-primary-container) ${(value + 12) / 24 * 100}%, rgba(255,255,255,0.1) ${(value + 12) / 24 * 100}%, rgba(255,255,255,0.1) 100%)`
+                  }}
                 />
               </div>
 
-              {/* Frequency Label */}
-              <span className="text-xs font-semibold text-apple-muted mt-4">
-                {labels[index]}
+              <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase mt-2">
+                {frequencies[index]}
               </span>
             </div>
           ))}

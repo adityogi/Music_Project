@@ -1,111 +1,90 @@
-import React, { useState } from 'react';
-import { X, GripVertical, Trash2, Play } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { X, ListMusic, Play, Trash2, GripVertical, Music } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 
 export default function QueueDrawer() {
-  const { isQueueOpen, toggleQueue, queue, queueIndex, playSong, removeFromQueue, reorderQueue } = usePlayerStore();
-  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+  const { isQueueOpen, toggleQueue, queue, queueIndex, playSong, removeFromQueue } = usePlayerStore();
+  const drawerRef = useRef(null);
 
-  if (!isQueueOpen) return null;
-
-  // --- Bulletproof Drag & Drop Handlers ---
-  const handleDragStart = (e, index) => {
-    setDraggedItemIndex(index);
-    e.dataTransfer.setData('text/plain', index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragEnd = () => {
-    // Fired if the user cancels the drag by letting go outside the window
-    setDraggedItemIndex(null);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault(); 
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e, targetIndex) => {
-    e.preventDefault();
-    
-    // 1. Force the visual state to reset instantly
-    setDraggedItemIndex(null);
-
-    // 2. Safely grab the index we attached in DragStart
-    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
-    
-    if (isNaN(sourceIndex) || sourceIndex === targetIndex) return;
-
-    // 3. Fire the reorder
-    reorderQueue(sourceIndex, targetIndex);
-  };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (drawerRef.current && !drawerRef.current.contains(e.target)) toggleQueue();
+    };
+    if (isQueueOpen) window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [isQueueOpen, toggleQueue]);
 
   return (
-    <aside className="w-80 bg-apple-panel border-l border-apple-border flex flex-col shrink-0 h-full shadow-2xl relative z-40 animate-in slide-in-from-right-8 duration-300">
-      <div className="p-4 border-b border-apple-border flex justify-between items-center bg-apple-panel/80 backdrop-blur-md sticky top-0 z-10">
-        <h2 className="text-lg font-bold text-white">Playing Next</h2>
-        <button onClick={toggleQueue} className="text-apple-muted hover:text-white transition">
-          <X size={20} />
-        </button>
-      </div>
+    <>
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] transition-opacity duration-300 ${isQueueOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`} 
+      />
+      
+      {/* Drawer */}
+      <div 
+        ref={drawerRef}
+        className={`fixed top-0 right-0 h-[calc(100vh-88px)] w-96 bg-surface-container-highest/95 backdrop-blur-3xl border-l border-white/5 shadow-2xl z-[160] transform transition-transform duration-300 ease-in-out flex flex-col ${isQueueOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-surface-container-high/50">
+          <div className="flex items-center gap-3">
+            <ListMusic className="text-primary-container" size={24} />
+            <h2 className="text-xl font-bold text-white tracking-tight">Up Next</h2>
+          </div>
+          <button onClick={toggleQueue} className="p-2 hover:bg-white/10 rounded-full text-on-surface-variant hover:text-white transition-colors">
+            <X size={20} />
+          </button>
+        </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {queue.length === 0 ? (
-          <div className="text-center text-apple-muted text-sm mt-10">Queue is empty</div>
-        ) : (
-          queue.map((song, index) => {
-            const isPlaying = index === queueIndex;
-            return (
-              <div 
-                key={`${song.id}-${index}`}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-                className={`flex items-center gap-3 p-2 rounded-lg group transition-all cursor-grab active:cursor-grabbing
-                  ${isPlaying ? 'bg-apple-border/50' : 'hover:bg-apple-border/30'}
-                  ${draggedItemIndex === index ? 'opacity-50 ring-2 ring-apple-red' : 'opacity-100 ring-0'}
-                `}
-              >
-                {/* Drag Grip Handle */}
-                <div className="text-apple-muted opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing shrink-0">
-                  <GripVertical size={16} />
-                </div>
-
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+          {queue?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-on-surface-variant opacity-50">
+              <ListMusic size={48} className="mb-4" />
+              <p>Your queue is empty</p>
+            </div>
+          ) : (
+            queue.map((song, index) => {
+              const isPlaying = index === queueIndex;
+              return (
                 <div 
-                  className="w-10 h-10 rounded bg-cover bg-center shrink-0 border border-apple-border/50 relative overflow-hidden"
-                  style={{ backgroundImage: song.coverUrl ? `url(${song.coverUrl})` : 'none', backgroundColor: '#3a3a3c' }}
+                  key={`${song.id}-${index}`}
+                  className={`group flex items-center gap-3 p-3 rounded-xl transition-colors ${isPlaying ? 'bg-white/10 border border-white/5' : 'hover:bg-white/5'}`}
                 >
-                  {!isPlaying && (
+                  <button className="text-on-surface-variant opacity-0 group-hover:opacity-50 hover:!opacity-100 cursor-grab active:cursor-grabbing">
+                    <GripVertical size={16} />
+                  </button>
+                  
+                  <div className="relative w-10 h-10 rounded bg-surface-container border border-white/5 shrink-0 overflow-hidden">
+                    {song.coverUrl ? (
+                      <img src={song.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><Music size={16} className="text-on-surface-variant/50" /></div>
+                    )}
                     <button 
-                      onClick={() => playSong(song)}
-                      className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => playSong(song, queue)}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Play size={16} className="text-white fill-white" />
+                      <Play size={16} className="text-white fill-current ml-0.5" />
                     </button>
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0 flex flex-col justify-center pointer-events-none">
-                  <span className={`text-sm font-semibold truncate ${isPlaying ? 'text-apple-red' : 'text-white'}`}>
-                    {song.title}
-                  </span>
-                  <span className="text-xs text-apple-muted truncate">{song.artist}</span>
-                </div>
+                  </div>
 
-                <button 
-                  onClick={() => removeFromQueue(index)}
-                  className="text-apple-muted hover:text-apple-red opacity-0 group-hover:opacity-100 transition p-2 shrink-0"
-                  title="Remove from Queue"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            );
-          })
-        )}
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <span className={`text-sm font-semibold truncate ${isPlaying ? 'text-primary-container' : 'text-white'}`}>{song.title}</span>
+                    <span className="text-xs text-on-surface-variant truncate">{song.artist}</span>
+                  </div>
+
+                  <button 
+                    onClick={() => removeFromQueue(index)}
+                    className="p-2 text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-error transition-all"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
-    </aside>
+    </>
   );
 }

@@ -40,7 +40,15 @@ export default function Sidebar() {
     if (name) createPlaylist(name);
   };
 
-  // Click handler for collapsed search icon
+  // NEW: Automatically switch to library view when searching
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim() !== '' && currentView !== 'library') {
+      setView('library');
+    }
+  };
+
   const handleSearchClick = () => {
     if (isSidebarCollapsed) toggleSidebar();
   };
@@ -95,7 +103,7 @@ export default function Sidebar() {
               type="text" 
               placeholder="Search..." 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full h-full bg-transparent border-none text-white text-sm pl-10 pr-3 focus:ring-0 placeholder:text-on-surface-variant/60 outline-none" 
             />
           )}
@@ -110,7 +118,7 @@ export default function Sidebar() {
         <NavItem icon={Mic2} label="Radio" viewId="radio" active={currentView === 'radio'} />
 
         {!isSidebarCollapsed && <span className="text-[10px] font-semibold text-on-surface-variant/60 px-3 mb-1 mt-6 uppercase tracking-widest animate-in fade-in">Library</span>}
-        {isSidebarCollapsed && <div className="h-6" />} {/* Spacer for collapsed mode */}
+        {isSidebarCollapsed && <div className="h-6" />}
         <NavItem icon={Music} label="Local Albums" viewId="library" active={currentView === 'library' || currentView === 'album'} />
         
         {/* Playlists */}
