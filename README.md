@@ -1,16 +1,123 @@
-# React + Vite
+Apple Music Pro Web Player
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional, high-performance music library application built with React and Vite. This player is designed to handle massive local music collections entirely within the browser, utilizing modern Web APIs for a native-feeling desktop experience.
 
-Currently, two official plugins are available:
+🚀 Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+🎧 Audio Engineering
 
-## React Compiler
+10-Band Graphic EQ: Professional-grade audio control using ten BiquadFilterNode peaking filters to customize your sound profile.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+LCD Visualizer: A real-time, frequency-domain visualizer rendered on a canvas via the Web Audio API.
 
-## Expanding the ESLint configuration
+Synced Lyrics: Interactive, full-screen lyrics mode with support for .lrc file drag-and-drop and timestamp scrubbing.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Native Integration: Full support for OS Media Keys and global keyboard shortcuts (Play/Pause/Skip).
+
+📂 Library & Performance
+
+Recursive Folder Scanning: Support for the modern File System Access API (Chrome/Edge) with persistent folder handles and a cross-browser hybrid fallback for Firefox/Safari.
+
+List Virtualization: Powered by React-Virtuoso, ensuring a butter-smooth 60FPS UI even with libraries exceeding 10,000+ tracks.
+
+Fuzzy Search: Typo-tolerant, lightning-fast searching across titles, artists, and albums powered by Fuse.js.
+
+Queue Management: Advanced "Up Next" queue with native Drag & Drop reordering and "Play Next" functionality.
+
+Custom Playlists: Create and curate your own collections with persistent storage.
+
+💅 Immersive UI/UX
+
+Dynamic Ambient Background: Real-time color extraction from album artwork creates a shifting, blurred "glow" effect that adapts to the current track.
+
+Custom Context Menus: Sleek, Apple-style frosted glass right-click menus for advanced track actions.
+
+Persist State: Your volume, EQ bands, and playlists are automatically saved to local storage and survive browser refreshes.
+
+🛠️ Tech Stack
+
+Category
+
+Technology
+
+Framework
+
+React 18 + Vite
+
+Styling
+
+Tailwind CSS + Lucide Icons
+
+State Management
+
+Zustand + Persist Middleware
+
+Audio Processing
+
+Web Audio API (AudioContext)
+
+Search & Performance
+
+Fuse.js & React-Virtuoso
+
+Storage
+
+IndexedDB & LocalStorage
+
+📦 Installation
+
+Clone the repository:
+
+git clone [https://github.com/yourusername/apple-music-pro.git](https://github.com/yourusername/apple-music-pro.git)
+cd apple-music-pro
+
+
+Install dependencies:
+
+npm install
+
+
+Note: Ensure fuse.js and react-virtuoso are installed for search and scrolling features.
+
+Start the development server:
+
+npm run dev
+
+
+📖 Usage Guide
+
+Importing Music: Click "Open Folder" in the sidebar or simply drag a folder from your desktop anywhere onto the application window.
+
+Equalizer: Click the Sliders icon in the Player Bar to adjust the 10-band EQ.
+
+Lyrics: Click the Microphone icon for the full-screen view. Drag a .lrc file onto the screen to sync lyrics for any local track.
+
+Context Menus: Right-click any track in the library to access "Play Next," "Add to End of Queue," or add it to a Playlist.
+
+🎹 Keyboard Shortcuts
+
+Key
+
+Action
+
+Space
+
+Play / Pause
+
+Arrow Right
+
+Skip to Next Track
+
+Arrow Left
+
+Previous Track
+
+Arrow Up/Down
+
+Adjust Volume
+
+L
+
+Toggle Full-screen Lyrics
+
+[!IMPORTANT] Privacy First: This is a local-first application. All audio processing and library management happen on your machine. Your music files are never uploaded to any server.

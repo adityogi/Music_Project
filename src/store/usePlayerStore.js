@@ -104,6 +104,21 @@ export const usePlayerStore = create(
         return { queue: nq, queueIndex: ni };
       }),
     }),
+    // --- CONTEXT MENU STATE ---
+    contextMenu: { isOpen: false, x: 0, y: 0, song: null },
+    setContextMenu: (isOpen, x = 0, y = 0, song = null) => 
+      set({ contextMenu: { isOpen, x, y, song } }),
+
+    // --- ADVANCED QUEUE ACTIONS ---
+    addToQueueNext: (song) => set((state) => {
+      const newQueue = [...(state.queue || [])];
+      // Insert right after the currently playing song
+      newQueue.splice(state.queueIndex + 1, 0, song);
+      return { queue: newQueue };
+    }),
+    addToQueueEnd: (song) => set((state) => ({
+      queue: [...(state.queue || []), song]
+    })),
     {
       name: 'apple-music-settings',
       partialize: (state) => ({ 
