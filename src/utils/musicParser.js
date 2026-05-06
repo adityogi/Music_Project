@@ -1,43 +1,44 @@
 import * as musicMetadata from 'music-metadata-browser';
 
-export async function parseLocalFolder(rawFiles) {
+export async function parseLocalFolder(rawFiles, onProgress) {
   const songs = [];
   const albumsMap = new Map();
+  const coverCache = new Map(); // CACHE: Prevent duplicate image blobs in memory
+
+  let processedCount = 0;
 
   for (const file of rawFiles) {
     try {
-      // Parse the ID3 tags using music-metadata-browser
       const metadata = await musicMetadata.parseBlob(file);
       const tags = metadata.common;
       
-      // Clean up metadata fallbacks
-      const title = tags.title || file.name.replace(/\.[^/.]+$/, ""); // Strip extension
+      const title = tags.title || file.name.replace(/\.[^/.]+$/, "");
       const artist = tags.artist || tags.albumartist || 'Unknown Artist';
       const albumName = tags.album || 'Unknown Album';
       
-      // Extract Cover Art
-      let coverUrl = null;
-      if (tags.picture && tags.picture.length > 0) {
+      // OPTIMIZATION: Check if we already created a cover URL for this album
+      let coverUrl = coverCache.get(albumName);
+
+      if (!coverUrl && tags.picture && tags.picture.length > 0) {
         const picture = tags.picture[0];
         const blob = new Blob([picture.data], { type: picture.format });
         coverUrl = URL.createObjectURL(blob);
+        coverCache.set(albumName, coverUrl); // Save to cache
       }
 
-      // Create the Song Object
       const song = {
-        id: `${file.name}-${file.size}-${file.lastModified}`,
+        id: `${file.name}-${file.size}`,
         title,
         artist,
         album: albumName,
         coverUrl,
-        url: URL.createObjectURL(file), // Creates a local streaming URL
-        file: file, // Keep reference to original file
+        url: URL.createObjectURL(file),
+        file: file,
         duration: metadata.format.duration || 0,
       };
 
       songs.push(song);
 
-      // Group into Albums Map
       const albumKey = `${albumName}-${artist}`;
       if (!albumsMap.has(albumKey)) {
         albumsMap.set(albumKey, {
@@ -51,8 +52,7 @@ export async function parseLocalFolder(rawFiles) {
       albumsMap.get(albumKey).songs.push(song);
 
     } catch (err) {
-      console.warn(`Could not parse metadata for ${file.name}, using fallbacks.`, err);
-      // Fallback if parsing fails
+      console.warn(`Skipping metadata for ${file.name}`);
       const fallbackSong = {
         id: `${file.name}-${file.size}`,
         title: file.name.replace(/\.[^/.]+$/, ""),
@@ -65,12 +65,18 @@ export async function parseLocalFolder(rawFiles) {
       };
       songs.push(fallbackSong);
     }
+
+    // Report progress back to the UI every 10 files to avoid overwhelming the main thread
+    processedCount++;
+    if (onProgress && processedCount % 10 === 0) {
+      onProgress(processedCount, rawFiles.length);
+    }
   }
 
-  // Convert the Albums Map back to an array
-  const albums = Array.from(albumsMap.values());
+  // Final progress update
+  if (onProgress) onProgress(rawFiles.length, rawFiles.length);
 
-  // Sort Albums and Songs alphabetically
+  const albums = Array.from(albumsMap.values());
   albums.sort((a, b) => a.title.localeCompare(b.title));
   songs.sort((a, b) => a.title.localeCompare(b.title));
 
