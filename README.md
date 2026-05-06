@@ -64,3 +64,15 @@ A professional, high-performance music library application built with **React 18
 - Lyrics: Click the Microphone icon for the full-screen view. Drag a .lrc file onto the screen to sync lyrics for any local track[cite: 1, 2].
 
 - Context Menus: Right-click any track in the library to access "Play Next," "Add to End of Queue," or add it to a Playlist[cite: 2].
+
+## 🎹 Keyboard Shortcuts
+Key	          |   Action
+--------------|----------------------------------------
+Space	      |   Play / Pause  
+Arrow Right	  |   Skip to Next Track  
+Arrow Left	  |   Previous Track[cite: 1]
+L	          |   Toggle Full-screen Lyrics[cite: 1, 2]
+Q	          |   Open / Close Queue Drawer[cite: 1, 2]
+
+[!IMPORTANT]
+Privacy First: This is a local-first application. All audio processing and library management happen on your machine. Your music files are never uploaded to any server[cite: 1, 2].
