@@ -1,14 +1,24 @@
-export function downloadFolderStructure(files, rootName = "Apple Music Library") {
-  if (!files || files.length === 0) return;
+export function downloadFolderStructure(library, rootName = "Local Music Library") {
+  if (!library || library.length === 0) {
+    alert("Please load some music into your library first!");
+    return;
+  }
 
   const tree = {};
 
   // 1. Build a nested object mapping the paths
-  files.forEach(file => {
-    const path = file.customPath || file.webkitRelativePath || file.name;
-    const parts = path.split('/');
-    let current = tree;
+  library.forEach(song => {
+    let path = "Unknown Track";
+    if (song.file) {
+      // Safely grab the custom path (drag & drop), webkit path (folder select), or fallback to metadata
+      path = song.file.customPath || song.file.webkitRelativePath || `${song.artist || 'Unknown'}/${song.album || 'Unknown'}/${song.file.name || song.title}`;
+    }
     
+    // Strip any leading slashes and split into folders
+    path = path.replace(/^\/+/, '');
+    const parts = path.split('/');
+    
+    let current = tree;
     parts.forEach((part, index) => {
       if (!current[part]) {
         current[part] = (index === parts.length - 1) ? null : {};
@@ -26,7 +36,6 @@ export function downloadFolderStructure(files, rootName = "Apple Music Library")
       const isLast = index === keys.length - 1;
       textContent += prefix + (isLast ? "└── " : "├── ") + key + "\n";
       
-      // If it's a folder (not null), traverse deeper
       if (node[key] !== null) {
         printTree(node[key], prefix + (isLast ? "    " : "│   "));
       }
@@ -35,19 +44,18 @@ export function downloadFolderStructure(files, rootName = "Apple Music Library")
 
   printTree(tree);
 
-  // 3. Generate a downloadable blob file
+  // 3. Generate a downloadable text file
   const blob = new Blob([textContent], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   
   const a = document.createElement('a');
   a.href = url;
   
-  // Format filename like: Library_Structure_10-24-2023.txt
   const dateStr = new Date().toISOString().split('T')[0];
   a.download = `Library_Structure_${dateStr}.txt`;
   
   document.body.appendChild(a);
-  a.click();
+  a.click(); // This will now work perfectly because it's tied to a user click!
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }

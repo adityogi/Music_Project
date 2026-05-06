@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Play, Disc3, Music, FolderOpen } from 'lucide-react';
+import { Play, Disc3, Music, FolderOpen, FileText } from 'lucide-react';
 import Fuse from 'fuse.js';
 import { Virtuoso } from 'react-virtuoso';
 import { usePlayerStore } from '../store/usePlayerStore';
+import { downloadFolderStructure } from '../utils/treeGenerator';
 
 export default function LibraryView() {
   const { library, albums, searchQuery, setView, playSong, currentSong } = usePlayerStore();
@@ -55,6 +56,18 @@ export default function LibraryView() {
           >
             Songs ({(filteredSongs || []).length})
           </button>
+
+          <div className="flex-1"></div>
+          
+          {/* NEW: Explicit Download Button */}
+          {library && library.length > 0 && (
+            <button 
+              onClick={() => downloadFolderStructure(library, "Supermix Data")}
+              className="flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-primary-container bg-primary-container/10 hover:bg-primary-container/20 rounded-full transition-colors border border-primary-container/20"
+            >
+              <FileText size={16} /> Download Structure
+            </button>
+          )}
         </div>
       </header>
 

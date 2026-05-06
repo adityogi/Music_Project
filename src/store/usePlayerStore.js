@@ -65,6 +65,9 @@ export const usePlayerStore = create(
           p.id === playlistId ? { ...p, songs: [...(p.songs || []), song] } : p
         )
       })),
+      deletePlaylist: (playlistId) => set((state) => ({
+        playlists: (state.playlists || []).filter(p => p.id !== playlistId)
+      })),
 
       // --- CONTEXT MENU STATE ---
       contextMenu: { isOpen: false, x: 0, y: 0, song: null },
